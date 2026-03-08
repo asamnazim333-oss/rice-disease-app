@@ -1,24 +1,42 @@
 import streamlit as st
-import numpy as np
 from PIL import Image
-from model import load_model,predict
+from model import load_model, predict
 
-st.title("Rice Disease Classification")
+st.title("🌾 Rice Disease Classification")
 
-model = load_model()
+disease_info = {
+    "Healthy": "Leaf is healthy with no disease symptoms.",
+    "Bacterial Blight": "Bacterial infection causing leaf blight.",
+    "Blast": "Fungal disease causing blast spots.",
+    "Brown Spot": "Fungal infection creating brown lesions.",
+    "Tungro": "Virus-related disease affecting rice plants."
+}
 
-file = st.file_uploader("Upload rice leaf image")
+@st.cache_resource
+def get_model():
+    return load_model()
 
-if file:
+model_data = get_model()
 
-    img = Image.open(file).resize((224,224))
+uploaded_file = st.file_uploader("Upload Rice Leaf Image", type=["jpg", "jpeg", "png"])
 
-    st.image(img)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
 
-    img = np.array(img)/255.0
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(image, use_column_width=True)
 
-    label,confidence = predict(model,img)
+    with col2:
+        if st.button("Predict Disease"):
+            with st.spinner("Analyzing leaf..."):
+                label, confidence, all_probs = predict(model_data, image)
 
-    st.success(f"Prediction: {label}")
+            st.success(f"Prediction: {label}")
+            st.info(f"Confidence: {confidence * 100:.2f}%")
 
-    st.info(f"Confidence: {confidence*100:.2f}%")
+            st.write("Prediction scores:")
+            st.write({k: f"{v*100:.2f}%" for k, v in all_probs.items()})
+
+            info = disease_info.get(label, "No information available.")
+            st.write(info)
