@@ -20,20 +20,41 @@ fig, ax = plt.subplots()
 ax.plot(train_acc, label="Train Accuracy")
 ax.plot(val_acc, label="Validation Accuracy")
 st.pyplot(fig)
+st.write("Final Accuracy: 86%")
+
 
 st.write("### Confusion Matrix (Demo)")
 
-matrix = [
-    [48, 2, 1, 1],
-    [3, 45, 2, 0],
-    [1, 4, 46, 3],
-    [2, 1, 3, 44]
+import numpy as np
+import matplotlib.pyplot as plt
+import streamlit as st
+
+classes = [
+"Healthy",
+"Bacterial_Leaf_Blight",
+"Leaf_Blast",
+"Brown_Spot"
 ]
 
-fig2, ax2 = plt.subplots()
-ax2.imshow(matrix)
-st.pyplot(fig2)
-st.write("Final Accuracy: 86%")
+matrix = np.array([
+[50,2,1,0],
+[3,45,2,1],
+[1,3,47,2],
+[0,1,2,48]
+])
+
+fig, ax = plt.subplots()
+
+ax.imshow(matrix)
+
+ax.set_xticks(range(len(classes)))
+ax.set_yticks(range(len(classes)))
+
+ax.set_xticklabels(classes,rotation=45)
+ax.set_yticklabels(classes)
+
+st.pyplot(fig)
+
 
 st.write("""  
 ✔ Confusion matrix values are sample only.
