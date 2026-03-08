@@ -4,4 +4,8 @@ numpy
 pandas
 pillow
 matplotlib
+gdown
 opencv-python-headless
+torch
+torchvision
+transformers
