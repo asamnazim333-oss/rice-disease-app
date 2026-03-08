@@ -1,32 +1,57 @@
 import streamlit as st
-import pandas as pd
+import os
 import matplotlib.pyplot as plt
 
-st.title("Dataset Overview")
+st.title("🌾 Dataset Overview")
 
-classes = ["Healthy","Brown Spot","Leaf Blast"]
+dataset_path = "Dataset"
 
-data = [500,420,380]
+if not os.path.exists(dataset_path):
+    st.error("Dataset folder not found!")
+    st.stop()
 
-df = pd.DataFrame({
-    "Disease":classes,
-    "Images":data
-})
+classes = os.listdir(dataset_path)
 
-st.write("Dataset distribution")
+st.write("### Classes Found")
+
+for c in classes:
+    st.write("✔", c)
+
+st.write("### Image Distribution")
+
+counts = []
+
+for c in classes:
+    folder = os.path.join(dataset_path, c)
+    if os.path.exists(folder):
+        counts.append(len(os.listdir(folder)))
+    else:
+        counts.append(0)
 
 fig, ax = plt.subplots()
-
-ax.bar(classes,data)
+ax.bar(classes, counts)
+ax.set_xlabel("Class")
+ax.set_ylabel("Number of Images")
 
 st.pyplot(fig)
 
-st.markdown("""
-### Classes
+st.write("### Sample Images")
 
-Healthy  
-Brown Spot  
-Leaf Blast
+for c in classes:
+    folder = os.path.join(dataset_path, c)
 
-These diseases affect rice productivity worldwide.
-""")
+    st.write(f"#### {c}")
+
+    if os.path.exists(folder):
+        images = os.listdir(folder)[:4]  # show first 4 images
+
+        if len(images) == 0:
+            st.write("No images found")
+        else:
+            cols = st.columns(len(images))
+
+            for i, img in enumerate(images):
+                img_path = os.path.join(folder, img)
+                cols[i].image(img_path, caption=img, use_container_width=True)
+    else:
+        st.write("No images found")
