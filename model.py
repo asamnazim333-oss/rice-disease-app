@@ -1,37 +1,36 @@
-import tensorflow as tf
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-from tensorflow.keras.models import Model
+from transformers import AutoImageProcessor, AutoModelForImageClassification
+import torch
 import numpy as np
 
-CLASS_NAMES = ["Healthy", "Brown Spot", "Leaf Blast"]
+model_name = "prithivMLmods/Rice-Leaf-Disease"
 
 def load_model():
-
-    base_model = ResNet50(
-        weights="imagenet",
-        include_top=False,
-        input_shape=(224,224,3)
-    )
-
-    x = base_model.output
-    x = GlobalAveragePooling2D()(x)
-
-    predictions = Dense(3, activation="softmax")(x)
-
-    model = Model(inputs=base_model.input, outputs=predictions)
-
-    return model
+    model = AutoModelForImageClassification.from_pretrained(model_name)
+    processor = AutoImageProcessor.from_pretrained(model_name)
+    return model, processor
 
 
-def predict(model, img):
+def predict(model_data, img):
+    model, processor = model_data
 
-    img = np.expand_dims(img, axis=0)
+    if img.mode != "RGB":
+        img = img.convert("RGB")
 
-    predictions = model.predict(img)
+    inputs = processor(images=img, return_tensors="pt")
 
-    class_index = np.argmax(predictions)
+    with torch.no_grad():
+        outputs = model(**inputs)
 
-    confidence = predictions[0][class_index]
+    probs = torch.nn.functional.softmax(outputs.logits, dim=1).squeeze()
+    probs = probs.tolist()
 
-    return CLASS_NAMES[class_index], confidence
+    labels = ["Bacterial Blight", "Blast", "Brown Spot", "Healthy", "Tungro"]
+
+    # dictionary of all probabilities
+    pred_dict = {labels[i]: float(probs[i]) for i in range(len(labels))}
+
+    # best prediction
+    best_label = max(pred_dict, key=pred_dict.get)
+    best_conf = pred_dict[best_label]
+
+    return best_label, best_conf, pred_dict
