@@ -49,7 +49,7 @@ for c in classes:
 
         for i, img in enumerate(images):
             img_path = os.path.join(folder, img)
-            cols[i % 4].image(img_path, caption=img, use_container_width=True)
+            cols[i % 4].image(img_path, caption=img, use_column_width=True)
     else:
         st.write("No images found")
 import os
